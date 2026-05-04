@@ -1,0 +1,288 @@
+moi : "
+90 x 10
+Salut, pour enrichir mon CV je t'ai demander de me faire un listing de projets à faire qui sont bon vendeur sur le marché et voici le premier projet que je doit réaliser : "🔥 Priorité 1 — Impact immédiat sur le marché (à faire en premier)
+Agent IA avec RAG — assistant métier
+Hyper demandé
+Construire un assistant qui ingère des docs (PDF, CSV) et répond avec du contexte. Déployé en conteneur, avec une API .NET ou FastAPI.
+
+Ollama (local, gratuit)
+ChromaDB / Qdrant
+.NET Semantic Kernel
+Python FastAPI
+Docker
+Coût
+0 €
+Durée
+3–4 semaines
+Impact CV
+★★★★★" le but et que je le réalise moi-même masi que tu me conseil comme un pédago si jamais je coince. pour le départ je voudrais que tu me dise quel choix de langage framework et technologies tu choisirais ?"
+
+claude : "
+Salut ! Je vais t'être honnête sur ce choix **Python + FastAPI** est la meilleure option pour **ce premier projet**, voici pourquoi :
+
+## Recommandation : Python + FastAPI + ChromaDB + Ollama
+
+**Avantages pédagogiques :**
+- **Courbe d'apprentissage douce** — FastAPI est très intuitif, tu écris l'API en quelques lignes
+- **Écosystème IA mature** — ChromaDB + Python = des libs bien documentées, plein de tutos
+- **Itération rapide** — Python te permet de tester/ajuster sans compilation
+- **Docker simplifié** — une image Python basique, c'est trivial
+
+**Impact CV :**
+- FastAPI est très demandé en 2026 (plus tendance que .NET pour le RAG)
+- "Python + IA" c'est exactement ce que les boîtes recherchent
+- ChromaDB > Qdrant pour débuter (plus simple, suffisant en démo)
+
+## Pourquoi pas .NET ?
+
+.NET + Semantic Kernel est excellent **techniquement**, mais :
+- Courbe plus abrupte (compilation, types, boilerplate)
+- Tu perds 1-2 semaines sur la plomberie au lieu d'itérer sur la qualité
+- Moins de ressources/tutos en français sur le RAG côté .NET
+
+## Stack final que je conseille :
+
+```
+Python 3.11
+├─ FastAPI (API)
+├─ ChromaDB (stockage vecteurs)
+├─ Ollama (LLM local)
+├─ Langchain (orchestration)
+└─ Docker (déploiement)
+```
+
+**Temps estimé :** ~3 semaines si tu vas droit au but.
+
+**Question avant qu'on détaille :** t'as déjà touché à FastAPI / Python pour du web, ou c'est ta première fois avec ces techs ?"
+
+moi : "python je connais comme junior mais pas en web et fastapi juste entendu parler mais jamais utiliser"
+
+claude : "Parfait, c'est même **mieux** ! FastAPI est conçu pour les gens qui connaissent Python mais pas le web. Tu vas apprendre vite.
+
+## Voici le plan pédagogique :
+
+**Phase 1 (3-4 jours) — Les bases FastAPI :**
+- Une route GET simple qui retourne du JSON
+- Comprendre request/response
+- Exécuter localement
+
+**Phase 2 (4-5 jours) — Intégration RAG :**
+- Charger un PDF avec `langchain`
+- Stocker dans ChromaDB
+- Faire une recherche simple
+
+**Phase 3 (3-4 jours) — L'IA branché :**
+- Connecter Ollama (tu lances le LLM local)
+- Combiner recherche + génération
+- Tester avec des questions
+
+**Phase 4 (3-4 jours) — Finitions :**
+- Dockeriser
+- Nettoyer le code
+- Faire une démo propre
+
+## Concrètement, tu vas apprendre :
+
+```python
+# FastAPI, c'est juste ça au départ
+from fastapi import FastAPI
+app = FastAPI()
+
+@app.post("/ask")
+def ask_question(question: str):
+    # Chercher dans ChromaDB
+    # Envoyer à Ollama
+    # Retourner la réponse
+    return {"answer": "..."}
+```
+
+**Quand tu es prêt, dis-moi :** tu veux que je t'aide à **setter l'environnement** (installer FastAPI, Ollama, etc.) ou tu préfères que je te guide étape par étape en commençant par une intro FastAPI ?"
+
+moi : "je préfère étape par étape poru bien comprendre par la pratique"
+
+claude : "Excellente approche ! On va y aller **une étape à la fois**, tu vas pratiquer, et quand tu es bloqué ou que tu veux valider, tu me dis.
+
+## **ÉTAPE 1 : Setup + Première API (aujourd'hui)**
+
+### 🎯 Objectif
+Avoir une API FastAPI qui répond "Hello" sur une route, rien de plus.
+
+### 📋 À faire :
+
+**1) Crée un dossier pour ton projet :**
+```bash
+mkdir my-rag-agent
+cd my-rag-agent
+```
+
+**2) Crée un environnement Python isolé :**
+```bash
+python -m venv venv
+# Sur Windows:
+venv\Scripts\activate
+# Sur Mac/Linux:
+source venv/bin/activate
+```
+
+**3) Installe FastAPI et Uvicorn (le serveur) :**
+```bash
+pip install fastapi uvicorn
+```
+
+**4) Crée un fichier `main.py` :**
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello, RAG Agent!"}
+
+@app.get("/ask")
+def ask(question: str):
+    return {"question": question, "answer": "Je réponds plus tard..."}
+```
+
+**5) Lance le serveur :**
+```bash
+uvicorn main:app --reload
+```
+
+Tu devrais voir :
+```
+INFO:     Uvicorn running on http://127.0.0.1:8000
+```
+
+**6) Teste dans ton navigateur ou Terminal :**
+```bash
+curl http://127.0.0.1:8000/
+curl "http://127.0.0.1:8000/ask?question=test"
+```
+
+---
+
+### ❓ Ce qui se passe :
+- `@app.get()` = "écoute les requêtes GET sur cette route"
+- `--reload` = relance le serveur quand tu changes le code
+- Les `return` deviennent automatiquement du JSON
+
+**Quand tu as fini :** dis-moi que ça marche (ou ce qui bloque) et on passe à **l'étape 2 — Charger des documents**."
+
+moi : "tout marche on peut passer à l'étape 2"
+
+claude : "Perfect ! 🚀
+
+## **ÉTAPE 2 : Charger des documents dans ChromaDB**
+
+### 🎯 Objectif
+Charger un PDF, le découper en petits morceaux (chunks), et les stocker dans une base vecteurs ChromaDB. Puis chercher les morceaux pertinents.
+
+### 📋 À faire :
+
+**1) Installe les dépendances :**
+```bash
+pip install chromadb langchain langchain-community pypdf
+```
+
+**2) Crée un document de test (`test_doc.txt`) :**
+```
+Python est un langage de programmation créé par Guido van Rossum en 1991.
+Python est très populaire pour la data science et l'IA.
+FastAPI est un framework web moderne et rapide pour Python.
+Les bases de données vectorielles stockent des embeddings.
+ChromaDB est une base vecteurs facile à utiliser et locale.
+```
+
+**3) Mets à jour `main.py` :**
+```python
+from fastapi import FastAPI
+import chromadb
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+
+app = FastAPI()
+
+# Initialise ChromaDB (stockage local dans un dossier)
+client = chromadb.PersistentClient(path="./chroma_data")
+collection = client.get_or_create_collection(name="documents")
+
+# Fonction pour charger et stocker les documents
+def load_documents():
+    # Lis le fichier
+    with open("test_doc.txt", "r", encoding="utf-8") as f:
+        text = f.read()
+    
+    # Découpe le texte en chunks (max 100 caractères, overlap de 20)
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=100,
+        chunk_overlap=20
+    )
+    chunks = splitter.split_text(text)
+    
+    # Stocke dans ChromaDB
+    for i, chunk in enumerate(chunks):
+        collection.add(
+            ids=[f"doc_{i}"],
+            documents=[chunk],
+            metadatas=[{"source": "test_doc.txt"}]
+        )
+    
+    print(f"✅ {len(chunks)} chunks chargés dans ChromaDB")
+
+# Fonction pour rechercher
+def search_documents(query: str):
+    results = collection.query(
+        query_texts=[query],
+        n_results=3  # Retourne les 3 meilleurs résultats
+    )
+    return results
+
+@app.get("/")
+def read_root():
+    return {"message": "RAG Agent prêt!"}
+
+@app.post("/load")
+def load():
+    load_documents()
+    return {"status": "Documents chargés"}
+
+@app.get("/search")
+def search(query: str):
+    results = search_documents(query)
+    return {
+        "query": query,
+        "results": results["documents"][0] if results["documents"] else []
+    }
+```
+
+**4) Lance le serveur :**
+```bash
+uvicorn main:app --reload
+```
+
+**5) Teste :**
+
+D'abord, charge les documents :
+```bash
+curl -X POST http://127.0.0.1:8000/load
+```
+
+Puis cherche :
+```bash
+curl "http://127.0.0.1:8000/search?query=Python et IA"
+```
+
+Tu devrais voir les chunks pertinents retournés ! 
+
+---
+
+### 🧠 Ce qui se passe :
+- **Splitter** = découpe le texte en petits morceaux (chunks)
+- **ChromaDB** = stocke les chunks + calcule automatiquement des embeddings (représentations numériques)
+- **Query** = cherche les chunks les plus proches sémantiquement de ta question
+
+### ⚠️ Note importante :
+ChromaDB calcule les embeddings **automatiquement** avec un modèle par défaut. C'est magique pour débuter !
+
+**Quand tu as testté et que ça marche :** dis-moi et on passe à **l'étape 3 — Connecter Ollama (le LLM local)**."
+
