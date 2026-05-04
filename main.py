@@ -8,13 +8,29 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi import UploadFile, File
 from pypdf import PdfReader
+from dotenv import load_dotenv
 
-# init chromadb (stockage local)
-client = chromadb.PersistentClient(path="./chroma_db")
+# Charge les variables d'env
+load_dotenv()
+
+# Configuration
+OLLAMA_HOST = os.getenv("OLLAMA_HOST", "http://localhost:11434")
+OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "mistral")
+CHUNK_SIZE = int(os.getenv("CHUNK_SIZE", "500"))
+CHUNK_OVERLAP = int(os.getenv("CHUNK_OVERLAP", "50"))
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
+CHROMA_DB_PATH = os.getenv("CHROMA_DB_PATH", "chroma_db")
+
+# Crée les dossiers s'ils n'existent pas
+os.makedirs(UPLOAD_DIR, exist_ok=True)
+os.makedirs(CHROMA_DB_PATH, exist_ok=True)
+
+# Init ChromaDB
+client = chromadb.PersistentClient(path=CHROMA_DB_PATH)
 collection = client.get_or_create_collection(name="my_collection")
 
-ollama_host = os.getenv("OLLAMA_HOST", "http://localhost:11434")
-ollama_client = Client(host=ollama_host)
+# Init Ollama
+ollama_client = Client(host=OLLAMA_HOST)
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -23,13 +39,13 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 def load_documents():
     with open("test_doc.txt", "r", encoding="utf-8") as f:
         text = f.read()
-    
-    splitter = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=20)
+
+    splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
     chunks = splitter.split_text(text)
-    
+
     for i, chunk in enumerate(chunks):
         collection.add(ids=[f"doc_{i}"], documents=[chunk])
-    
+
     return {"status": f"✅ {len(chunks)} chunks chargés"}
 
 def search_documents(query: str):
@@ -39,10 +55,10 @@ def search_documents(query: str):
 def generate_answer_with_context(question: str):
     # Cherche les chunks pertinents
     chunks = search_documents(question)
-    
+
     # Prépare le contexte
     context = "\n".join(chunks) if chunks else "Aucun contexte trouvé"
-    
+
     # Prompt avec contexte
     prompt = f"""Tu es un assistant IA utile basé sur des documents.
 
@@ -52,14 +68,14 @@ CONTEXTE:
 QUESTION: {question}
 
 Réponds basé sur le contexte fourni. Si la réponse ne se trouve pas dans le contexte, dis-le."""
-    
+
     # Génère la réponse
     response = ollama_client.generate(
-        model="mistral",
+        model=OLLAMA_MODEL,
         prompt=prompt,
         stream=False
     )
-    
+
     return response["response"]
 
 def extract_text_from_file(file_path: str) -> str:
@@ -77,16 +93,16 @@ def extract_text_from_file(file_path: str) -> str:
 
 def chunk_and_store(text: str, source_name: str):
     """Découpe le texte en chunks et les stocke dans ChromaDB"""
-    splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+    splitter = RecursiveCharacterTextSplitter(chunk_size=CHUNK_SIZE, chunk_overlap=CHUNK_OVERLAP)
     chunks = splitter.split_text(text)
-    
+
     for i, chunk in enumerate(chunks):
         collection.add(
             ids=[f"{source_name}_{i}"],
             documents=[chunk],
             metadatas=[{"source": source_name}]
         )
-    
+
     return len(chunks)
 
 # ======================= ENDPOINTS =======================
@@ -123,15 +139,15 @@ def ask(question: str):
 async def upload_file(file: UploadFile = File(...)):
     try:
         # Sauvegarde le fichier
-        file_path = f"uploads/{file.filename}"
+        file_path = f"{UPLOAD_DIR}/{file.filename}"
         with open(file_path, "wb") as f:
             content = await file.read()
             f.write(content)
-        
+
         # Extrait et charge le texte
         text = extract_text_from_file(file_path)
         chunks_count = chunk_and_store(text, file.filename)
-        
+
         return {
             "status": f"✅ {file.filename} chargé ({chunks_count} chunks)",
             "filename": file.filename
