@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 RAG Agent</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 800px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #888;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 15px;
+            font-size: 16px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .upload-area {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            background: #eef0ff;
+            border-color: #764ba2;
+        }
+
+        .upload-area p {
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border 0.3s;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            font-size: 14px;
+            margin: 20px 0;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .response {
+            background: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            border-radius: 6px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .response.active {
+            display: block;
+        }
+
+        .response-title {
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .response-text {
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+
+        .sources {
+            border-top: 1px solid #ddd;
+            padding-top: 15px;
+            margin-top: 15px;
+        }
+
+        .sources-title {
+            color: #888;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            margin-bottom: 10px;
+        }
+
+        .source-item {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #666;
+            border-left: 2px solid #764ba2;
+        }
+
+        .error {
+            background: #fee;
+            border-left-color: #f66;
+            color: #d00;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🤖 RAG Agent</h1>
+        <p class="subtitle">Assistant IA avec mémoire des documents</p>
+
+        <!-- Section Charger des docs -->
+        <div class="section">
+            <div class="section-title">📄 Charger des documents</div>
+            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
+                <p>📁 Drag & drop des fichiers ou cliquez</p>
+                <small style="color: #999;">Texte, PDF ou CSV</small>
+            </div>
+            <input type="file" id="fileInput" multiple onchange="updateFileList()">
+        
+            <!-- Liste des fichiers sélectionnés -->
+            <div id="fileList" style="margin-top: 15px;"></div>
+        
+            <button class="btn" id="loadBtn" onclick="loadDocument()" style="display: none;">Charger les documents</button>
+            <div class="loading" id="loadingLoad">
+                <span class="spinner"></span> Chargement en cours...
+            </div>
+        </div>
+
+        <!-- Section Poser une question -->
+        <div class="section">
+            <div class="section-title">❓ Poser une question</div>
+            <div class="input-group">
+                <input type="text" id="questionInput" placeholder="Pose une question..."
+                    onkeypress="if(event.key==='Enter') askQuestion()">
+                <button class="btn" onclick="askQuestion()">Envoyer</button>
+            </div>
+            <div class="loading" id="loadingAsk">
+                <span class="spinner"></span> Réflexion en cours...
+            </div>
+        </div>
+
+        <!-- Réponse -->
+        <div class="response" id="response">
+            <div class="response-title">✨ Réponse</div>
+            <div class="response-text" id="responseText"></div>
+            <div class="sources">
+                <div class="sources-title">📚 Sources utilisées</div>
+                <div id="sourcesList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = "http://localhost:8000";
+
+        function updateFileList() {
+                const fileInput = document.getElementById('fileInput');
+                const fileList = document.getElementById('fileList');
+                const loadBtn = document.getElementById('loadBtn');
+
+                if (fileInput.files.length === 0) {
+                    fileList.innerHTML = '';
+                    loadBtn.style.display = 'none';
+                    return;
+                }
+
+                // Affiche la liste des fichiers
+                let html = '<div style="background: #f0f4ff; padding: 15px; border-radius: 6px; margin-bottom: 10px;">';
+                html += '<p style="color: #667eea; font-weight: 600; margin-bottom: 10px;">✅ Fichiers sélectionnés:</p>';
+
+                for (let file of fileInput.files) {
+                    html += `<div style="padding: 8px; background: white; margin-bottom: 6px; border-radius: 4px; border-left: 3px solid #667eea;">
+            📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)
+        </div>`;
+                }
+
+                html += '</div>';
+                fileList.innerHTML = html;
+                loadBtn.style.display = 'block';
+            }
+
+        // Charger document
+        async function loadDocument() {
+                const fileInput = document.getElementById('fileInput');
+                if (!fileInput.files.length) {
+                    alert('Sélectionne au moins un fichier');
+                    return;
+                }
+
+                document.getElementById('loadingLoad').classList.add('active');
+
+                try {
+                    // Upload chaque fichier
+                    for (const file of fileInput.files) {
+                        const formData = new FormData();
+                        formData.append('file', file);
+
+                        const response = await fetch(`${API_BASE}/upload`, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+
+                        if (data.error) {
+                            alert('Erreur: ' + data.error);
+                        } else {
+                            alert(data.status);
+                        }
+                    }
+
+                    fileInput.value = ''; // Reset l'input
+                } catch (err) {
+                    alert('Erreur: ' + err.message);
+                } finally {
+                    document.getElementById('loadingLoad').classList.remove('active');
+                }
+            }
+
+        // Poser une question
+        async function askQuestion() {
+            const question = document.getElementById('questionInput').value.trim();
+            if (!question) {
+                alert('Pose une question!');
+                return;
+            }
+
+            document.getElementById('loadingAsk').classList.add('active');
+            document.getElementById('response').classList.remove('active');
+
+            try {
+                const response = await fetch(`${API_BASE}/ask?question=${encodeURIComponent(question)}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.answer) {
+                    document.getElementById('responseText').textContent = data.answer;
+
+                    const sourcesList = document.getElementById('sourcesList');
+                    sourcesList.innerHTML = data.sources
+                        .map(source => `<div class="source-item">${source}</div>`)
+                        .join('');
+
+                    document.getElementById('response').classList.add('active');
+                } else if (data.error) {
+                    document.getElementById('responseText').textContent = '❌ Erreur: ' + data.error;
+                    document.getElementById('response').classList.add('active');
+                    document.getElementById('response').classList.add('error');
+                }
+            } catch (err) {
+                document.getElementById('responseText').textContent = '❌ Erreur de connexion';
+                document.getElementById('response').classList.add('active');
+                document.getElementById('response').classList.add('error');
+                console.error(err);
+            } finally {
+                document.getElementById('loadingAsk').classList.remove('active');
+            }
+        }
+
+        // Drag and drop
+        document.addEventListener('dragover', e => e.preventDefault());
+        document.addEventListener('drop', e => {
+            e.preventDefault();
+            document.getElementById('fileInput').files = e.dataTransfer.files;
+        });
+    </script>
+</body>
+
+</html>
