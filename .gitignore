@@ -15,6 +15,7 @@ dist/
 build/
 
 # Project
+chroma_db/
 chroma_data/
 uploads/
 *.txt
