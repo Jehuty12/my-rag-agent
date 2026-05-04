@@ -154,3 +154,45 @@ async def upload_file(file: UploadFile = File(...)):
         }
     except Exception as e:
         return {"error": str(e)}
+
+@app.get("/documents")
+def list_documents():
+    """Liste tous les documents chargés"""
+    try:
+        # Récupère tous les documents avec leurs métadonnées
+        all_data = collection.get()
+        
+        # Déduplique par source
+        sources = {}
+        for metadata, document in zip(all_data["metadatas"], all_data["documents"]):
+            source = metadata.get("source", "unknown")
+            if source not in sources:
+                sources[source] = {
+                    "name": source,
+                    "chunks": 0,
+                    "preview": document[:100] + "..."
+                }
+            sources[source]["chunks"] += 1
+        
+        return {"documents": list(sources.values())}
+    except Exception as e:
+        return {"error": str(e)}
+
+@app.delete("/documents/{doc_name}")
+def delete_document(doc_name: str):
+    """Supprime tous les chunks d'un document"""
+    try:
+        all_data = collection.get()
+        
+        ids_to_delete = []
+        for metadata, id_ in zip(all_data["metadatas"], all_data["ids"]):
+            if metadata.get("source") == doc_name:
+                ids_to_delete.append(id_)
+        
+        if ids_to_delete:
+            collection.delete(ids=ids_to_delete)
+            return {"status": f"✅ {doc_name} supprimé ({len(ids_to_delete)} chunks)"}
+        else:
+            return {"error": "Document non trouvé"}
+    except Exception as e:
+        return {"error": str(e)}

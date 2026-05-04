@@ -235,7 +235,14 @@
                 <span class="spinner"></span> Chargement en cours...
             </div>
         </div>
-
+                <!-- Section Documents chargés -->
+                <div class="section">
+                    <div class="section-title">📚 Documents chargés</div>
+                    <div id="documentsList" style="background: #f0f4ff; padding: 15px; border-radius: 6px;">
+                        <p style="color: #999; text-align: center;">Aucun document pour le moment</p>
+                    </div>
+                    <button class="btn" onclick="refreshDocuments()" style="margin-top: 10px;">Actualiser la liste</button>
+                </div>
         <!-- Section Poser une question -->
         <div class="section">
             <div class="section-title">❓ Poser une question</div>
@@ -262,6 +269,60 @@
 
     <script>
         const API_BASE = "http://localhost:8000";
+
+        // Charger les documents au démarrage
+        document.addEventListener('DOMContentLoaded', refreshDocuments);
+
+        async function refreshDocuments() {
+                try {
+                    const response = await fetch(`${API_BASE}/documents`);
+                    const data = await response.json();
+
+                    const documentsList = document.getElementById('documentsList');
+
+                    if (!data.documents || data.documents.length === 0) {
+                        documentsList.innerHTML = '<p style="color: #999; text-align: center;">Aucun document pour le moment</p>';
+                        return;
+                    }
+
+                    let html = '';
+                    for (const doc of data.documents) {
+                        html += `
+                <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid #667eea; display: flex; justify-content: space-between; align-items: center;">
+                    <div style="flex: 1;">
+                        <strong>${doc.name}</strong><br>
+                        <small style="color: #999;">${doc.chunks} chunks • ${doc.preview}</small>
+                    </div>
+                    <button onclick="deleteDocument('${doc.name}')" style="background: #f66; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ Supprimer</button>
+                </div>
+            `;
+                    }
+                    documentsList.innerHTML = html;
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+        async function deleteDocument(docName) {
+                if (!confirm(`Supprimer "${docName}" ?`)) return;
+
+                try {
+                    const response = await fetch(`${API_BASE}/documents/${encodeURIComponent(docName)}`, {
+                        method: 'DELETE'
+                    });
+                    const data = await response.json();
+
+                    if (data.status) {
+                        alert(data.status);
+                        refreshDocuments();
+                    } else if (data.error) {
+                        alert('Erreur: ' + data.error);
+                    }
+                } catch (err) {
+                    alert('Erreur de suppression');
+                    console.error(err);
+                }
+            }
 
         function updateFileList() {
                 const fileInput = document.getElementById('fileInput');
@@ -300,7 +361,6 @@
                 document.getElementById('loadingLoad').classList.add('active');
 
                 try {
-                    // Upload chaque fichier
                     for (const file of fileInput.files) {
                         const formData = new FormData();
                         formData.append('file', file);
@@ -314,18 +374,19 @@
                         if (data.error) {
                             alert('Erreur: ' + data.error);
                         } else {
-                            alert(data.status);
+                            console.log(data.status);
                         }
                     }
 
-                    fileInput.value = ''; // Reset l'input
+                    fileInput.value = '';
+                    refreshDocuments(); // Actualise la liste
                 } catch (err) {
                     alert('Erreur: ' + err.message);
                 } finally {
                     document.getElementById('loadingLoad').classList.remove('active');
                 }
             }
-
+                
         // Poser une question
         async function askQuestion() {
             const question = document.getElementById('questionInput').value.trim();

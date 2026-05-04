@@ -18,7 +18,8 @@ services:
     environment:
       - OLLAMA_HOST=http://ollama:11434
     volumes:
-      - ./chroma_data:/app/chroma_data
+      - ./chroma_db:/app/chroma_db
+      - ./uploads:/app/uploads
 
 volumes:
   ollama:
