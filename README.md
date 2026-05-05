@@ -266,6 +266,4 @@ Ce projet est parfait pour apprendre :
 
 ---
 
-**Fait avec ❤️ pour l'IA locale et privée**
-
 ⭐ Si tu aimes ce projet, n'hésite pas à laisser une star !
