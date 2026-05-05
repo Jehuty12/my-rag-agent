@@ -44,6 +44,16 @@ http://localhost:8000
 
 **C'est tout !** L'app démarre en ~2-3 minutes la première fois (télécharge Mistral).
 
+### ⚠️ Premier lancement — Attendre le chargement du modèle
+
+Lors du **premier démarrage**, Ollama doit télécharger le modèle (~4-5 GB). L'interface affiche un **voyant de statut** en haut :
+
+- 🟢 **Vert** = Modèle prêt, tu peux poser des questions
+- 🟠 **Orange** = Modèle en train de charger, patiente...
+- 🔴 **Rouge** = Erreur, vérifie les logs
+
+**Le bouton "Envoyer" est automatiquement désactivé** tant que le modèle n'est pas prêt. Pas de surprise !
+
 ## 📖 Utilisation
 
 ### Interface Web

@@ -194,6 +194,43 @@ def delete_document(doc_name: str):
     except Exception as e:
         return {"error": str(e)}
     
+@app.get("/status")
+def get_status():
+    """Retourne l'état du modèle Ollama"""
+    try:
+        # Test connexion à Ollama
+        response = ollama_client.generate(
+            model=OLLAMA_MODEL,
+            prompt="test",
+            stream=False
+        )
+        return {
+            "status": "ready",
+            "model": OLLAMA_MODEL,
+            "message": "Modèle prêt"
+        }
+    except Exception as e:
+        error_str = str(e).lower()
+        if "not found" in error_str or "404" in error_str:
+            return {
+                "status": "loading",
+                "model": OLLAMA_MODEL,
+                "message": f"Le modèle {OLLAMA_MODEL} doit être téléchargé",
+                "progress": "Veuillez patienter..."
+            }
+        elif "connection" in error_str or "refused" in error_str:
+            return {
+                "status": "error",
+                "model": OLLAMA_MODEL,
+                "message": "Impossible de se connecter à Ollama"
+            }
+        else:
+            return {
+                "status": "error",
+                "model": OLLAMA_MODEL,
+                "message": str(e)
+            }
+
 @app.get("/config")
 def get_config():
     """Retourne la configuration actuelle"""
