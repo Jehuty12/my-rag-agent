@@ -198,51 +198,40 @@ _model_status_cache = {"status": "loading", "timestamp": 0}
 
 @app.get("/status")
 def get_status():
-    """Retourne l'état du modèle Ollama (avec cache court)"""
-    import time
-    current_time = time.time()
-
-    # Cache le résultat 2 secondes pour éviter de surcharger Ollama
-    if current_time - _model_status_cache.get("timestamp", 0) < 2:
-        cached = _model_status_cache.copy()
-        cached.pop("timestamp", None)
-        return cached
-
+    """Retourne l'état du modèle Ollama (rapide, sans tester le modèle)"""
     try:
-        response = ollama_client.generate(
-            model=OLLAMA_MODEL,
-            prompt=".",
-            stream=False
-        )
-        status_result = {
-            "status": "ready",
-            "model": OLLAMA_MODEL,
-            "message": "Modèle prêt ✅"
-        }
-    except Exception as e:
-        error_str = str(e).lower()
-        if "not found" in error_str or "404" in error_str:
-            status_result = {
+        # Liste les modèles disponibles rapidement
+        tags = ollama_client.list()
+        models = {m["name"].split(":")[0] for m in tags["models"] if "name" in m}
+
+        if OLLAMA_MODEL in models or f"{OLLAMA_MODEL}:latest" in str(tags):
+            return {
+                "status": "ready",
+                "model": OLLAMA_MODEL,
+                "message": "Modèle prêt ✅"
+            }
+        else:
+            return {
                 "status": "loading",
                 "model": OLLAMA_MODEL,
                 "message": "Téléchargement du modèle...",
                 "progress": "En cours"
             }
-        elif "connection" in error_str or "refused" in error_str:
-            status_result = {
+    except Exception as e:
+        error_str = str(e).lower()
+        if "connection" in error_str or "refused" in error_str:
+            return {
                 "status": "error",
                 "model": OLLAMA_MODEL,
                 "message": "Impossible de se connecter à Ollama"
             }
         else:
-            status_result = {
-                "status": "error",
+            return {
+                "status": "loading",
                 "model": OLLAMA_MODEL,
-                "message": str(e)[:100]
+                "message": "Ollama démarre...",
+                "progress": "En cours"
             }
-
-    _model_status_cache = {**status_result, "timestamp": current_time}
-    return status_result
 
 @app.get("/config")
 def get_config():
