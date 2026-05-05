@@ -7,7 +7,9 @@ services:
       - "11434:11434"
     volumes:
       - ollama:/root/.ollama
-    command: serve
+      - ./ollama-entrypoint.sh:/ollama-entrypoint.sh
+    entrypoint: /bin/bash
+    command: /ollama-entrypoint.sh
 
   rag-api:
     build: .
