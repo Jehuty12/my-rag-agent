@@ -262,7 +262,6 @@ Ce projet est parfait pour apprendre :
 - [FastAPI Docs](https://fastapi.tiangolo.com/)
 - [Ollama](https://ollama.ai/)
 - [ChromaDB](https://www.trychroma.com/)
-- [RAG Explainé](https://www.deeplearning.ai/short-courses/retrieval-augmented-generation/)
 
 ---
 
