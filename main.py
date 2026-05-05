@@ -194,42 +194,55 @@ def delete_document(doc_name: str):
     except Exception as e:
         return {"error": str(e)}
     
+_model_status_cache = {"status": "loading", "timestamp": 0}
+
 @app.get("/status")
 def get_status():
-    """Retourne l'état du modèle Ollama"""
+    """Retourne l'état du modèle Ollama (avec cache court)"""
+    import time
+    current_time = time.time()
+
+    # Cache le résultat 2 secondes pour éviter de surcharger Ollama
+    if current_time - _model_status_cache.get("timestamp", 0) < 2:
+        cached = _model_status_cache.copy()
+        cached.pop("timestamp", None)
+        return cached
+
     try:
-        # Test connexion à Ollama
         response = ollama_client.generate(
             model=OLLAMA_MODEL,
-            prompt="test",
+            prompt=".",
             stream=False
         )
-        return {
+        status_result = {
             "status": "ready",
             "model": OLLAMA_MODEL,
-            "message": "Modèle prêt"
+            "message": "Modèle prêt ✅"
         }
     except Exception as e:
         error_str = str(e).lower()
         if "not found" in error_str or "404" in error_str:
-            return {
+            status_result = {
                 "status": "loading",
                 "model": OLLAMA_MODEL,
-                "message": f"Le modèle {OLLAMA_MODEL} doit être téléchargé",
-                "progress": "Veuillez patienter..."
+                "message": "Téléchargement du modèle...",
+                "progress": "En cours"
             }
         elif "connection" in error_str or "refused" in error_str:
-            return {
+            status_result = {
                 "status": "error",
                 "model": OLLAMA_MODEL,
                 "message": "Impossible de se connecter à Ollama"
             }
         else:
-            return {
+            status_result = {
                 "status": "error",
                 "model": OLLAMA_MODEL,
-                "message": str(e)
+                "message": str(e)[:100]
             }
+
+    _model_status_cache = {**status_result, "timestamp": current_time}
+    return status_result
 
 @app.get("/config")
 def get_config():

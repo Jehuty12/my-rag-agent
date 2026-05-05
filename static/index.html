@@ -367,12 +367,20 @@
     <script>
         const API_BASE = "http://localhost:8000";
         let modelReady = false;
+        let statusCheckInterval = null;
+        let lastStatus = null;
 
-        // Vérifier l'état du modèle toutes les 3 secondes
+        // Vérifier l'état du modèle avec polling intelligent
         async function checkModelStatus() {
             try {
                 const response = await fetch(`${API_BASE}/status`);
                 const data = await response.json();
+
+                // Ne met à jour que s'il y a un changement
+                if (JSON.stringify(data) === JSON.stringify(lastStatus)) {
+                    return;
+                }
+                lastStatus = data;
 
                 const indicator = document.querySelector('.status-indicator');
                 const statusTitle = document.getElementById('statusTitle');
@@ -385,6 +393,10 @@
                     statusTitle.textContent = `✅ ${data.model} prêt`;
                     statusMessage.textContent = 'Vous pouvez poser des questions';
                     if (sendBtn) sendBtn.disabled = false;
+
+                    // Réduit la fréquence du polling une fois prêt
+                    if (statusCheckInterval) clearInterval(statusCheckInterval);
+                    statusCheckInterval = setInterval(checkModelStatus, 10000); // 10s au lieu de 3s
                 } else if (data.status === 'loading') {
                     modelReady = false;
                     indicator.className = 'status-indicator loading';
@@ -403,10 +415,10 @@
             }
         }
 
-        // Vérifier le statut au démarrage et toutes les 3 secondes
+        // Vérifier le statut au démarrage et toutes les 3 secondes initialement
         document.addEventListener('DOMContentLoaded', () => {
             checkModelStatus();
-            setInterval(checkModelStatus, 3000);
+            statusCheckInterval = setInterval(checkModelStatus, 3000); // 3s au démarrage
             loadConfig();
             refreshDocuments();
         });
@@ -426,7 +438,10 @@
 
                     if (data.status) {
                         alert('✅ Configuration mise à jour !');
-                        // Relance la vérification du statut
+                        // Réinitialise le polling du statut pour vérifier le nouveau modèle
+                        lastStatus = null;
+                        if (statusCheckInterval) clearInterval(statusCheckInterval);
+                        statusCheckInterval = setInterval(checkModelStatus, 1000); // Polling rapide temporaire
                         checkModelStatus();
                     }
                 } catch (err) {
@@ -469,9 +484,9 @@
                 <div style="background: white; padding: 12px; margin-bottom: 8px; border-radius: 4px; border-left: 3px solid #667eea; display: flex; justify-content: space-between; align-items: center;">
                     <div style="flex: 1;">
                         <strong>${doc.name}</strong><br>
-                        <small style="color: #999;">${doc.chunks} chunks • ${doc.preview}</small>
+                        <small style="color: #999;">${doc.chunks} chunks • ${doc.preview || 'Aucun aperçu'}</small>
                     </div>
-                    <button onclick="deleteDocument('${doc.name}')" style="background: #f66; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ Supprimer</button>
+                    <button onclick="deleteDocument('${doc.name.replace(/'/g, "\\'")}')" style="background: #f66; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 12px;">🗑️ Supprimer</button>
                 </div>
             `;
                     }
@@ -497,7 +512,7 @@
                         alert('Erreur: ' + data.error);
                     }
                 } catch (err) {
-                    alert('Erreur de suppression');
+                    alert('Erreur de suppression: ' + err.message);
                     console.error(err);
                 }
             }
@@ -558,7 +573,10 @@
 
                     fileInput.value = '';
                     document.getElementById('fileList').innerHTML = '';
-                    refreshDocuments(); // Actualise la liste
+
+                    // Actualise la liste après chaque upload
+                    await new Promise(resolve => setTimeout(resolve, 500));
+                    refreshDocuments();
                 } catch (err) {
                     alert('Erreur: ' + err.message);
                 } finally {
@@ -597,13 +615,14 @@
                         .join('');
 
                     document.getElementById('response').classList.add('active');
+                    document.getElementById('response').classList.remove('error');
                 } else if (data.error) {
                     document.getElementById('responseText').textContent = '❌ Erreur: ' + data.error;
                     document.getElementById('response').classList.add('active');
                     document.getElementById('response').classList.add('error');
                 }
             } catch (err) {
-                document.getElementById('responseText').textContent = '❌ Erreur de connexion';
+                document.getElementById('responseText').textContent = '❌ Erreur de connexion: ' + err.message;
                 document.getElementById('response').classList.add('active');
                 document.getElementById('response').classList.add('error');
                 console.error(err);
@@ -617,6 +636,7 @@
         document.addEventListener('drop', e => {
             e.preventDefault();
             document.getElementById('fileInput').files = e.dataTransfer.files;
+            updateFileList();
         });
     </script>
 </body>

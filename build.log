@@ -1,0 +1,51 @@
+time="2026-05-05T11:06:42+02:00" level=warning msg="G:\\DevProjects\\my-rag-agent\\docker-compose.yml: the attribute `version` is obsolete, it will be ignored, please remove it to avoid potential confusion"
+ Image my-rag-agent-rag-api Building 
+#1 [internal] load local bake definitions
+#1 reading from stdin 525B 0.0s done
+#1 DONE 0.0s
+
+#2 [internal] load build definition from Dockerfile
+#2 transferring dockerfile: 330B done
+#2 DONE 0.0s
+
+#3 [auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [internal] load metadata for docker.io/library/python:3.11-slim
+#4 DONE 0.8s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 82B done
+#5 DONE 0.0s
+
+#6 [1/5] FROM docker.io/library/python:3.11-slim@sha256:6d85378d88a19cd4d76079817532d62232be95757cb45945a99fec8e8084b9c2
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 1.38kB done
+#7 DONE 0.0s
+
+#8 [2/5] WORKDIR /app
+#8 CACHED
+
+#9 [3/5] COPY requirements.txt .
+#9 CACHED
+
+#10 [4/5] RUN pip install --no-cache-dir -r requirements.txt
+#10 CACHED
+
+#11 [5/5] COPY . .
+#11 DONE 0.1s
+
+#12 exporting to image
+#12 exporting layers 0.0s done
+#12 writing image sha256:2e459858f1d51cbfdb03b054ae788acd9d4ec12cc95dbff015f7f9458369c54a done
+#12 naming to docker.io/library/my-rag-agent-rag-api done
+#12 DONE 0.1s
+
+#13 resolving provenance for metadata file
+#13 DONE 0.0s
+ Image my-rag-agent-rag-api Built 
+ Network my-rag-agent_default Creating 
+ Network my-rag-agent_default Created 
+ Volume my-rag-agent_ollama Creating 
