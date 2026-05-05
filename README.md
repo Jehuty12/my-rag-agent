@@ -15,7 +15,6 @@ Un **assistant IA local et privé** qui ingère vos documents (PDF, TXT) et rép
 - ✅ **Configuration dynamique** — Ajuster chunks, modèle, prompts en temps réel
 - ✅ **Interface web** — UI moderne et intuitive (drag-drop, aperçu temps réel)
 - ✅ **Docker ready** — Deploy en 1 commande
-- ✅ **Zéro coût** — Tout gratuit et open-source
 
 ## 🚀 Quick Start
 
