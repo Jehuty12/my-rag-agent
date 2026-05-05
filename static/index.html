@@ -379,6 +379,7 @@
                     }
 
                     fileInput.value = '';
+                    document.getElementById('fileList').innerHTML = '';
                     refreshDocuments(); // Actualise la liste
                 } catch (err) {
                     alert('Erreur: ' + err.message);

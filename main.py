@@ -165,7 +165,7 @@ def list_documents():
         # Déduplique par source
         sources = {}
         for metadata, document in zip(all_data["metadatas"], all_data["documents"]):
-            source = metadata.get("source", "unknown")
+            source = metadata.get("source", "unknown") if metadata else "unknown"
             if source not in sources:
                 sources[source] = {
                     "name": source,
@@ -183,12 +183,13 @@ def delete_document(doc_name: str):
     """Supprime tous les chunks d'un document"""
     try:
         all_data = collection.get()
-        
+
         ids_to_delete = []
         for metadata, id_ in zip(all_data["metadatas"], all_data["ids"]):
-            if metadata.get("source") == doc_name:
+            source = metadata.get("source", "unknown") if metadata else "unknown"
+            if source == doc_name:
                 ids_to_delete.append(id_)
-        
+
         if ids_to_delete:
             collection.delete(ids=ids_to_delete)
             return {"status": f"✅ {doc_name} supprimé ({len(ids_to_delete)} chunks)"}
@@ -196,3 +197,34 @@ def delete_document(doc_name: str):
             return {"error": "Document non trouvé"}
     except Exception as e:
         return {"error": str(e)}
+    
+@app.get("/config")
+def get_config():
+    """Retourne la configuration actuelle"""
+    return {
+        "ollama_host": OLLAMA_HOST,
+        "ollama_model": OLLAMA_MODEL,
+        "chunk_size": CHUNK_SIZE,
+        "chunk_overlap": CHUNK_OVERLAP
+    }
+
+@app.post("/config")
+def update_config(model: str = None, chunk_size: int = None, chunk_overlap: int = None):
+    """Met à jour la configuration"""
+    global OLLAMA_MODEL, CHUNK_SIZE, CHUNK_OVERLAP
+    
+    if model:
+        OLLAMA_MODEL = model
+    if chunk_size:
+        CHUNK_SIZE = chunk_size
+    if chunk_overlap:
+        CHUNK_OVERLAP = chunk_overlap
+    
+    return {
+        "status": "✅ Configuration mise à jour",
+        "config": {
+            "ollama_model": OLLAMA_MODEL,
+            "chunk_size": CHUNK_SIZE,
+            "chunk_overlap": CHUNK_OVERLAP
+        }
+    }

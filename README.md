@@ -172,15 +172,17 @@ my-rag-agent/
 - Feedback visuel des fichiers sélectionnés
 - Preview avant chargement
 
-### ⏳ Étape 7 : Multi-documents
-- Lister les documents chargés
-- Supprimer/recharger des documents
-- Afficher la source de chaque réponse
+### ✅ Étape 7 : Multi-documents
+- Lister les documents chargés avec aperçu
+- Supprimer/nettoyer des documents
+- Gestion automatique des métadatas par source
+- Interface intuitive pour gérer la base
 
 ### ⏳ Étape 8 : Optimisations
-- Meilleur prompt pour réponses courtes & précises
-- Chunks ajustables (taille/overlap)
-- Possibilité de changer le modèle Ollama (Mistral → Llama 2, etc.)
+- Améliorer le prompt pour réponses plus courtes & précises
+- Configuration dynamique des chunks (taille/overlap)
+- Changer le modèle Ollama (Mistral ↔ Llama 2, etc.)
+- Endpoint `/config` pour ajuster en temps réel
 
 ### ⏳ Phase 3 : Deploy en cloud (optionnel)
 - Mettre en ligne sur Railway, Render, etc.
