@@ -53,29 +53,25 @@ def search_documents(query: str):
     return results["documents"][0] if results["documents"] else []
 
 def generate_answer_with_context(question: str):
-    # Cherche les chunks pertinents
     chunks = search_documents(question)
-
-    # Prépare le contexte
     context = "\n".join(chunks) if chunks else "Aucun contexte trouvé"
-
-    # Prompt avec contexte
-    prompt = f"""Tu es un assistant IA utile basé sur des documents.
+    
+    # ✨ Meilleur prompt : court, direct, avec instructions claires
+    prompt = f"""Basé sur le contexte fourni, réponds de façon concise et directe.
 
 CONTEXTE:
 {context}
 
 QUESTION: {question}
 
-Réponds basé sur le contexte fourni. Si la réponse ne se trouve pas dans le contexte, dis-le."""
-
-    # Génère la réponse
+Réponds en maximum 2-3 phrases. Si la réponse ne se trouve pas dans le contexte, dis clairement "Je ne sais pas"."""
+    
     response = ollama_client.generate(
         model=OLLAMA_MODEL,
         prompt=prompt,
         stream=False
     )
-
+    
     return response["response"]
 
 def extract_text_from_file(file_path: str) -> str:

@@ -178,10 +178,88 @@ my-rag-agent/
 - Gestion automatique des métadatas par source
 - Interface intuitive pour gérer la base
 
-### ⏳ Étape 8 : Optimisations
-- Améliorer le prompt pour réponses plus courtes & précises
+### ✅ Étape 8 : Optimisations
+- Meilleur prompt pour réponses plus courtes & précises
 - Configuration dynamique des chunks (taille/overlap)
-- Changer le modèle Ollama (Mistral ↔ Llama 2, etc.)
+- Changer le modèle Ollama en temps réel
+- Explications claires des paramètres
+
+---
+
+## 🎛️ Comprendre la Configuration
+
+### 📚 **Modèle Ollama**
+**C'est le "cerveau" qui répond aux questions**
+
+- **Mistral** (par défaut) — Rapide, bon compromis, 7B paramètres
+- **Llama 2** — Plus puissant mais plus lent, meilleure compréhension
+- **Neural Chat** — Léger et rapide, bon pour des réponses simples
+
+**Plage recommandée :** Mistral pour débuter, Llama 2 si tu veux mieux
+
+---
+
+### 🔪 **Chunk Size (Taille des morceaux)**
+**C'est comme découper un livre en pages — ça détermine la "mémoire" du RAG**
+
+- **Trop petit (100-200)** → L'IA voit peu de contexte, réponses fragmentées ❌
+- **Bon (400-800)** → Équilibre parfait, contexte suffisant ✅
+- **Trop grand (2000+)** → Bruit, l'IA se perd, très lent ❌
+
+**Plage recommandée :** 400-800 (défaut 500)
+
+---
+
+### 🔗 **Chunk Overlap (Chevauchement)**
+**C'est le "débordement" entre deux chunks — pour ne pas perdre le contexte à la jonction**
+
+- **Pas de chevauchement (0)** → Risque de perdre du contexte ❌
+- **Bon (20-100)** → Garde les connections, contexte cohérent ✅
+- **Trop (> 50% du chunk)** → Doublons, confusion ❌
+
+**Plage recommandée :** 10-20% de chunk_size (ex: 50-100 pour chunk_size=500)
+
+---
+
+### ⚡ **Configuration Recommandée par Usage**
+
+| Usage | Modèle | Chunk Size | Overlap | Notes |
+|-------|--------|-----------|---------|-------|
+| **Démarrage** | Mistral | 500 | 50 | Défaut, bon compromis |
+| **Documents longs** | Mistral | 800 | 80 | Plus de contexte |
+| **Qualité max** | Llama 2 | 600 | 60 | Lent mais très bon |
+| **Performance** | Mistral | 300 | 30 | Très rapide |
+
+---
+
+## 📝 Convention des Commits
+
+Ce projet utilise **Conventional Commits** pour une meilleure lisibilité et automatisation.
+
+### Format
+```
+<type>(<scope>): <description>
+
+<body optionnel>
+```
+
+### Types de commits
+- **feat** : Nouvelle fonctionnalité
+- **fix** : Correction de bug
+- **docs** : Documentation
+- **style** : Formatage (sans changement de code)
+- **refactor** : Refactorisation
+- **perf** : Optimisations
+- **test** : Tests
+- **chore** : Dépendances, build, etc.
+
+### Exemples
+```
+feat(config): add dynamic model and chunk size configuration
+fix(documents): handle None metadata in list_documents
+docs(readme): add comprehensive parameter documentation
+perf(search): optimize chunk retrieval with better indexing
+```
 - Endpoint `/config` pour ajuster en temps réel
 
 ### ⏳ Phase 3 : Deploy en cloud (optionnel)

@@ -243,6 +243,31 @@
                     </div>
                     <button class="btn" onclick="refreshDocuments()" style="margin-top: 10px;">Actualiser la liste</button>
                 </div>
+                <!-- Section Configuration -->
+                <div class="section">
+                    <div class="section-title">⚙️ Configuration Avancée</div>
+                    <div style="background: #f0f4ff; padding: 15px; border-radius: 6px;">
+                        <div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea;">🧠 Modèle Ollama</label>
+                            <input type="text" id="modelInput" placeholder="mistral"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">
+                            <small style="color: #888; display: block;">Le "cerveau" qui répond. <strong>mistral</strong> = rapide, <strong>llama2</strong> = plus intelligent</small>
+                        </div>
+                        <div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea;">🔪 Taille des chunks</label>
+                            <input type="number" id="chunkSizeInput" placeholder="500" value="500"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">
+                            <small style="color: #888; display: block;">📖 Comme découper un livre : combien de mots par "page"? <strong>Recommandé: 400-800</strong></small>
+                        </div>
+                        <div style="margin-bottom: 20px; padding: 12px; background: white; border-radius: 4px; border-left: 3px solid #667eea;">
+                            <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #667eea;">🔗 Chevauchement (overlap)</label>
+                            <input type="number" id="chunkOverlapInput" placeholder="50" value="50"
+                                style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 8px;">
+                            <small style="color: #888; display: block;">⛓️ Débordement entre chunks pour garder le contexte. <strong>Recommandé: 10-20% de la taille</strong></small>
+                        </div>
+                        <button class="btn" onclick="updateConfig()" style="width: 100%;">✅ Appliquer les paramètres</button>
+                    </div>
+                </div>
         <!-- Section Poser une question -->
         <div class="section">
             <div class="section-title">❓ Poser une question</div>
@@ -268,6 +293,45 @@
     </div>
 
     <script>
+        async function updateConfig() {
+                const model = document.getElementById('modelInput').value || 'mistral';
+                const chunkSize = parseInt(document.getElementById('chunkSizeInput').value) || 500;
+                const chunkOverlap = parseInt(document.getElementById('chunkOverlapInput').value) || 50;
+
+                try {
+                    const response = await fetch(`${API_BASE}/config`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: `model=${model}&chunk_size=${chunkSize}&chunk_overlap=${chunkOverlap}`
+                    });
+                    const data = await response.json();
+
+                    if (data.status) {
+                        alert('✅ Configuration mise à jour !');
+                    }
+                } catch (err) {
+                    alert('Erreur: ' + err.message);
+                }
+            }
+
+            // Charger la config au démarrage
+            async function loadConfig() {
+                try {
+                    const response = await fetch(`${API_BASE}/config`);
+                    const data = await response.json();
+
+                    document.getElementById('modelInput').value = data.ollama_model;
+                    document.getElementById('chunkSizeInput').value = data.chunk_size;
+                    document.getElementById('chunkOverlapInput').value = data.chunk_overlap;
+                } catch (err) {
+                    console.error('Erreur lors du chargement de la config:', err);
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                loadConfig();
+                refreshDocuments();
+            });
         const API_BASE = "http://localhost:8000";
 
         // Charger les documents au démarrage
